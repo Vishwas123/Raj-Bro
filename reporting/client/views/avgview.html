@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html ng-app="reportsApp">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title></title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.16/angular.js"></script>
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.16/angular-resource.js"></script>
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+    <!-- Optional theme -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css" integrity="sha384-fLW2N01lMqjakBkx3l/M9EahuwpSfeNvV63J5ezn3uZzapT0u7EYsXMjQV+0En5r" crossorigin="anonymous">
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
+    <style type="text/css">
+    #totalLabel {
+        margin-top: 8px;
+    }
+    </style>
+    <nav class="navbar navbar-default navbar-fixed-top">
+        <a class="navbar-brand" href="#">CPE - Test Planning Tool</a>
+        <ul class="nav navbar-nav">
+            <li class="nav-item">
+                <a class="nav-link" href="/">Home</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/testview">All Reports</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/trendview">Trend Report</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/caseview">Test Cases</a>
+            </li>
+            <li class="nav-item active">
+                <a class="nav-link" href="/avgview">Avg Report</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/progressview">Cycle Progress</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/planningview"> Test Planning</a>
+            </li>            
+        </ul>
+    </nav>
+</head>
+
+<body>
+    <div class="container" ng-controller="avgController">
+        <br>
+        <br>
+        <h1> Average Reports List </h1>
+        <input type="text" class="form-control" ng-model="filterinput" placeholder="Search">
+        <br>
+        <!--         <select ng-model="sel" ng-options="report._id as report._id for report in reports" class="form-control">
+    <option value="">All TestID</option>
+</select> -->
+        <br>
+        <div class="panel panel-default">
+            <div class="panel-heading">Average Chart......pg.{{currentPage}}</div>
+            <div class="panel-body">
+                <iframe class="chartjs-hidden-iframe" style="width: 100%; display: block; border: 0px; height: 0px; margin: 0px; position: absolute; left: 0px; right: 0px; top: 0px; bottom: 0px;"></iframe>
+                <canvas id="bar" class="chart chart-bar ng-isolate-scope" chart-data="data" chart-labels="labels" chart-series="series" chart-options="options" width="200" height="454">
+                </canvas>
+            </div>
+        </div>
+        <table class="table">
+            <thead>
+                <tr>
+
+                    <th ng-click="sort('test_name')">Name
+                        <span class="glyphicon sort-icon" ng-show="sortKey=='test_name'" ng-class="{'glyphicon-chevron-up':reverse,'glyphicon-chevron-down':!reverse}"></span></th>
+                    <th ng-click="sort('_id')">TestID
+                        <span class="glyphicon sort-icon" ng-show="sortKey=='_id'" ng-class="{'glyphicon-chevron-up':reverse,'glyphicon-chevron-down':!reverse}"></span></th>                        
+                    <th ng-click="sort('avg_duration')">Avg_Duration_Time
+                        <span class="glyphicon sort-icon" ng-show="sortKey=='avg_duration'" ng-class="{'glyphicon-chevron-up':reverse,'glyphicon-chevron-down':!reverse}"></span></th>
+                    <th ng-click="sort('avg_total')">Avg_Total_Time(ex. duration)
+                        <span class="glyphicon sort-icon" ng-show="sortKey=='avg_total'" ng-class="{'glyphicon-chevron-up':reverse,'glyphicon-chevron-down':!reverse}"></span></th>
+                    <th ng-click="sort('avg_setup')">Avg_Setup_Time
+                        <span class="glyphicon sort-icon" ng-show="sortKey=='avg_setup'" ng-class="{'glyphicon-chevron-up':reverse,'glyphicon-chevron-down':!reverse}"></span></th>
+                    <th ng-click="sort('avg_testing')">Avg_Testing_Time
+                        <span class="glyphicon sort-icon" ng-show="sortKey=='avg_testing'" ng-class="{'glyphicon-chevron-up':reverse,'glyphicon-chevron-down':!reverse}"></span></th>
+                    <th ng-click="sort('avg_error')">Avg_Error_Time
+                        <span class="glyphicon sort-icon" ng-show="sortKey=='avg_error'" ng-class="{'glyphicon-chevron-up':reverse,'glyphicon-chevron-down':!reverse}"></span></th>
+                    <th ng-click="sort('avg_misc')">Avg_Misc_Time
+                        <span class="glyphicon sort-icon" ng-show="sortKey=='avg_misc'" ng-class="{'glyphicon-chevron-up':reverse,'glyphicon-chevron-down':!reverse}"></span></th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- | filter:{'_id': sel||undefined} : true -->
+                <tr dir-paginate="report in reports | itemsPerPage:10  | orderBy:sortKey:reverse  
+        | filter: filterinput" current-page="currentPage" ng-init="currentPage=1">
+
+                    <td>{{report.test_name}}</td>
+                    <td>{{report._id}}</td>                    
+                    <td>{{report.avg_duration}}</td>
+                    <td>{{report.avg_total}}</td>
+                    <td>{{report.avg_setup}}</td>
+                    <td>{{report.avg_testing}}</td>
+                    <td>{{report.avg_error}}</td>
+                    <td>{{report.avg_misc}}</td>
+                </tr>
+            </tbody>
+        <dir-pagination-controls max-size="20" direction-links="true" boundary-links="true" on-page-change="pageChangeHandler(newPageNumber)">
+        </dir-pagination-controls>
+        </table>
+        <table ng-table="tableParams" class="table" show-filter="true">
+            <tr ng-repeat="report in $data">
+                <td title="'Name'" filter="{ avg_duration: 'number'}" sortable="'avg_duration'">
+                    {{report.avg_duration}}</td>
+                <td title="'Age'" filter="{ avg_setup: 'number'}" sortable="'avg_setup'">
+                    {{report.avg_setup}}</td>
+            </tr>
+        </table>
+        <script type="text/javascript" src="/js/app.js"></script>
+        <script type="text/javascript" src="/js/controllers/avgController.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/1.0.2/Chart.js"></script>
+        <script src="https://cdn.jsdelivr.net/angular.chartjs/0.8.8/angular-chart.js"></script>
+        <script src="/node_modules/angular-utils-pagination/dirPagination.js"></script>
+        <!-- This file is not used in this file-->
+        <script src="/node_modules/angular-ui-bootstrap/dist/ui-bootstrap.js"></script>
+        <script src="/node_modules/angular-ui-tree/dist/angular-ui-tree.js"></script>
+        <script src="/node_modules/angular-daterangepicker/js/angular-daterangepicker.js"></script>        
+        <!-- This file is not used in this file-->
+    </div>
+</body>
+
+</html>
+<!-- https://ajax.googleapis.com/ajax/libs/angularjs/1.2.16/angular.min.js -->

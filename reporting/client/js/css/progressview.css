@@ -1,0 +1,175 @@
+.angular-ui-tree-handle {
+    cursor: default;
+}
+
+#featureSelect {
+    padding-left: 0;
+}
+
+#sortby {
+    padding-top: 5px;
+}
+
+.loader {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    width: 50px;
+    height: 50px;
+    z-index: 9999;
+    background: url('/node_modules/images/default.gif') 50% 50% no-repeat rgb(249, 249, 249);
+}
+
+.red {
+    color: red;
+}
+
+.green {
+    color: green;
+}
+
+.orange {
+    color: orange;
+}
+
+.blue {
+    color: #48ABFF;
+}
+
+.progress-bar-green {
+    background-color: #047507;
+}
+
+.progress-bar-red {
+    background-color: #F51717;
+}
+
+canvas.chart.chart-doughnut.ng-isolate-scope {
+    padding-left: 10%;
+}
+
+.material-switch > input[type="checkbox"] {
+    display: none;
+}
+
+.material-switch > label {
+    cursor: pointer;
+    height: 0px;
+    position: relative;
+    width: 40px;
+}
+
+.material-switch > label::before {
+    background: rgb(0, 0, 0);
+    box-shadow: inset 0px 0px 10px rgba(0, 0, 0, 0.5);
+    border-radius: 8px;
+    content: '';
+    height: 16px;
+    margin-top: -8px;
+    position: absolute;
+    opacity: 0.3;
+    transition: all 0.4s ease-in-out;
+    width: 40px;
+}
+
+.material-switch > label::after {
+    background: rgb(255, 255, 255);
+    border-radius: 16px;
+    box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.3);
+    content: '';
+    height: 24px;
+    left: -4px;
+    margin-top: -8px;
+    position: absolute;
+    top: -4px;
+    transition: all 0.3s ease-in-out;
+    width: 24px;
+}
+
+.material-switch > input[type="checkbox"]:checked + label::before {
+    background: inherit;
+    opacity: 0.5;
+}
+
+.material-switch > input[type="checkbox"]:checked + label::after {
+    background: inherit;
+    left: 20px;
+}
+
+.checked_progress_actual {
+    background-color: #0600FF;
+    color: #0600FF;
+}
+
+.checked_goal {
+    background-color: #FF0055;
+    color: #FF0055;
+}
+
+.checked_progress_expected {
+    background-color: #00AB48;
+    color: #00AB48;
+}
+
+.checked_qc_actual {
+    background-color: #FF4E00;
+    color: #FF4E00;
+}
+
+.checked_tester {
+    background-color: #5BFE72;
+    color: #5BFE72;
+}
+
+.checked_qc_expected {
+    background-color: #9445FF;
+    color: #9445FF;
+}
+
+.checked_off {
+    background-color: #FFFFFF;
+    color: #FFFFFF;
+}
+
+
+
+.update-nag{
+  display: inline-block;
+  font-size: 14px;
+  text-align: left;
+  background-color: #fff;
+  height: 40px;
+  -webkit-box-shadow: 0 1px 1px 0 rgba(0,0,0,.2);
+  box-shadow: 0 1px 1px 0 rgba(0,0,0,.1);
+  margin-bottom: 10px;
+}
+
+
+
+.update-nag > .update-split{
+  background: #337ab7;
+  width: 33px;
+  float: left;
+  color: #fff!important;
+  height: 100%;
+  text-align: center;
+}
+
+.update-nag > .update-split > .glyphicon{
+  position:relative;
+  top: calc(50% - 9px)!important; /* 50% - 3/4 of icon height */
+}
+
+
+.update-nag > .update-split.update-danger{
+  background: #d9534f!important;
+}
+
+
+
+.update-nag > .update-text{
+  line-height: 19px;
+  padding-top: 11px;
+  padding-left: 45px;
+  padding-right: 20px;
+}

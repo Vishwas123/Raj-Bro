@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html ng-app="reportsApp">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title></title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.5.7/angular.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.5.7/angular-resource.js"></script>
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+    <!-- Optional theme -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css" integrity="sha384-fLW2N01lMqjakBkx3l/M9EahuwpSfeNvV63J5ezn3uZzapT0u7EYsXMjQV+0En5r" crossorigin="anonymous">
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.10.0/css/bootstrap-select.min.css">
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.10.0/js/bootstrap-select.min.js"></script>
+    <style type="text/css">
+    #totalLabel {
+        margin-top: 8px;
+    }
+    
+    .red {
+        color: red;
+    }
+    </style>
+</head>
+
+<body>
+    <div ng-controller="reportsController">
+        <form class="form-horizontal">
+            <fieldset>
+                <legend>Tester Report</legend>
+                <div class="form-group">
+                    <label class="col-md-4 control-label">Test Name</label>
+                    <div class="col-md-4">
+                        <input id="testname" name="testname" type="text" placeholder="Populated automatically from QC" class="form-control input-md" required ng-model="testname" ng-readonly="true">
+                    </div>
+                    <div class="col-md-2">
+                        <button type="button" class="btn btn-warning" ng-click="open('lg')">HELP <span class="glyphicon glyphicon-question-sign"></span></button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-md-4 control-label">Test ID</label>
+                    <div class="col-md-4">
+                        <input id="testid" name="testid" type="text" placeholder="Populated automatically from QC" class="form-control input-md" required ng-model="testid" ng-readonly="true">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-md-4 control-label">Run ID</label>
+                    <div class="col-md-4">
+                        <input id="runid" name="runid" type="text" min="0" placeholder="Populated automatically from QC" class="form-control input-md" required ng-model="runid" ng-change="timeChange()" ng-readonly="true">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-md-4 control-label">Tester ID</label>
+                    <div class="col-md-4">
+                        <input id="testerid" name="testerid" type="text" min="0" placeholder="Populated automatically from QC" class="form-control input-md" required ng-model="testerid" ng-change="timeChange()" ng-readonly="true">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-md-4 control-label">Test Instance ID</label>
+                    <div class="col-md-4">
+                        <input id="test_instance_id" name="test_instance_id" type="text" min="0" placeholder="Populated automatically from QC" class="form-control input-md" required ng-model="test_instance_id" ng-change="timeChange()" ng-readonly="true">
+                    </div>
+                </div>                
+                <div class="form-group">
+                    <label class="col-md-4 control-label">Duration Time(QC)</label>
+                    <div class="col-md-2">
+                        <input type="text" min="0" placeholder="Hrs and Minutes" class="form-control input-md" required ng-model="total_duration" ng-init="initDurationHoursAndMinutes()" ng-readonly="true">
+                    </div>
+                    <div class="col-md-2">
+                        <input id="duration" name="duration" type="text" min="0" placeholder="Populated automatically from QC" class="form-control input-md" required ng-model="duration" ng-change="timeChange()" ng-readonly="true">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-md-4 control-label">Total Time(mongoDB)</label>
+                    <div class="col-md-2">
+                        <input  ng-class="{red:total_hr=='0 hours 0 minutes'}" type="text" min="0" ng-init="total_hr=0" class="form-control input-md" required ng-model="total_hr" ng-change="timeChange()" ng-readonly="true">
+                    </div>
+                    <div class="col-md-2">
+                        <input ng-class="{red:total==0}" id="total" name="total" type="text" min="0" placeholder="Populated automatically from QC" class="form-control input-md" required ng-model="total" ng-change="timeChange()" ng-readonly="true">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-4 control-label"></label>
+                </div>
+                <div class="form-group">
+                    <label class="col-md-4 control-label">Setup Time</label>
+                    <div class="col-md-1 hour">
+                        <label>Hours:</label>
+                        <select class="form-control" ng-change="update('setup')" ng-init="setup_h=0" ng-model="setup_h" ng-options="hour.seconds as hour.hr for hour in hours">
+                        </select>
+                    </div>
+                    <div class="col-md-1 min">
+                        <label>Minutes:</label>
+                        <select class="form-control" ng-change="update('setup')" ng-init="setup_m=0" ng-model="setup_m" ng-options="minute.seconds as minute.min for minute in minutes">
+                        </select>
+                    </div>
+                    <div class="col-md-2 sec" style="display: none;">
+                        <label>Total Seconds :</label>
+                        <input id="setup" name="setup" type="number" min="0" value="" class="form-control input-md" ng-change="updateSeconds('setup')" ng-model="setup" ng-init="setup=0" onfocus="this.select()" ng-readonly="true">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-md-4 control-label">Testing Time</label>
+                    <div class="col-md-1 hour">
+                        <label>Hours:</label>
+                        <select class="form-control" ng-change="update('test')" ng-init="test_h=0" ng-model="test_h" ng-options="hour.seconds as hour.hr for hour in hours">
+                        </select>
+                    </div>
+                    <div class="col-md-1 min">
+                        <label>Minutes:</label>
+                        <select class="form-control" ng-change="update('test')" ng-init="test_m=0" ng-model="test_m" ng-options="minute.seconds as minute.min for minute in minutes">
+                        </select>
+                    </div>
+                    <div class="col-md-2 sec" style="display: none;">
+                        <label>Total Seconds :</label>
+                        <input id="test" name="test" type="number" min="0" class="form-control input-md" ng-change="updateSeconds('test')" ng-model="testing" ng-init="testing=0" onfocus="this.select()" ng-readonly="true">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-md-4 control-label">Error Time</label>
+                    <div class="col-md-1 hour">
+                        <label>Hours:</label>
+                        <select class="form-control" ng-change="update('error')" ng-init="error_h=0" ng-model="error_h" ng-options="hour.seconds as hour.hr for hour in hours">
+                        </select>
+                    </div>
+                    <div class="col-md-1 min">
+                        <label>Minutes:</label>
+                        <select class="form-control" ng-change="update('error')" ng-init="error_m=0" ng-model="error_m" ng-options="minute.seconds as minute.min for minute in minutes">
+                        </select>
+                    </div>
+                    <div class="col-md-2 sec" style="display: none;">
+                        <label>Total Seconds :</label>
+                        <input id="error" name="error" type="number" min="0" class="form-control input-md" ng-change="updateSeconds('error')" ng-model="error" ng-init="error=0" onfocus="this.select()" ng-readonly="true">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-md-4 control-label">Misc Time</label>
+                    <div class="col-md-1 hour">
+                        <label>Hours:</label>
+                        <select class="form-control" ng-change="update('misc')" ng-init="misc_h=0" ng-model="misc_h" ng-options="hour.seconds as hour.hr for hour in hours">
+                        </select>
+                    </div>
+                    <div class="col-md-1 min">
+                        <label>Minutes:</label>
+                        <select class="form-control" ng-change="update('misc')" ng-init="misc_m=0" ng-model="misc_m" ng-options="minute.seconds as minute.min for minute in minutes">
+                        </select>
+                    </div>
+                    <div class="col-md-2 sec" style="display: none;">
+                        <label>Total Seconds :</label>
+                        <input id="misc" name="misc" type="number" min="0" class="form-control input-md" ng-change="updateSeconds('misc')" ng-model="misc" ng-init="misc=0" onfocus="this.select()" ng-readonly="true">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-md-4 control-label">Notes(optional)</label>
+                    <div class="col-md-4">
+                        <input id="notes" name="notes" type="text" placeholder="Optional Notes" class="form-control input-md" ng-model="notes">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-md-2 col-md-offset-3">
+                        <label>Platform:</label>
+                        <select class="form-control" ng-class="{red:!platform}" ng-change="changeSelect('platform')" ng-init="" ng-model="platform" ng-options="pt.platform as pt.platform for pt in platforms | unique:'platform'" required>
+                            <option value="">-- Select Platform --</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label>Project:</label>
+                        <select class="form-control" ng-class="{red:!project}" ng-change="changeSelect('project')" ng-init="" ng-model="project" ng-options="pt.project as pt.project for pt in platforms | unique:'project'" required>
+                            <option value="">-- Select Project --</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label>Cycle :</label>
+                        <label hidden ng-model="cycleType"></label>
+                        <label hidden ng-model="startDate"></label>
+                        <label hidden ng-model="dateRange"></label>
+                        <label hidden ng-model="endDate"></label>
+                        <select class="form-control" ng-class="{red:!cycle}" ng-change="changeSelect('cycle')" ng-model="cycle" ng-options="pt.cycle[0] as pt.cycle[0].cycleName for pt in platforms | unique:'cycle'" required>
+                            <option value="">-- Select Cycle --</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-md-4 control-label">Total(seconds)</label>
+                    <div class="col-md-4" id="totalLabel">
+                        <label ng-model="total">{{total = setup + testing + error + misc}} seconds</label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-4 control-label" for="report"></label>
+                    <div class="col-md-4">
+                        <button id="report" name="report" class="btn btn-primary" ng-disabled="!cycle || !project || !platform ||
+                                     total == 0 " ng-click="addReport()">Submit</button>
+                    </div>
+                    <label class="col-sm-4 control-label" for="report"></label>
+                </div>
+            </fieldset>
+        </form>
+        <!-- THis is the code for modal -->
+        <script type="text/ng-template" id="reportHelper.html">
+            <div class="modal-header">
+                <h3 class="modal-title">Report Helper</h3>
+            </div>
+            <div class="modal-body">
+                <table class="table">
+                    <thead class="thead-inverse">
+                        <tr class="success">
+                            <th>Category</th>
+                            <th>Sub-Cat</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="warning">
+                            <td>Setup</td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td></td>
+                            <td>Station Reset</td>
+                        </tr>
+                        <tr>
+                            <td></td>
+                            <td>Re-Configuration</td>
+                        </tr>
+                        <tr>
+                            <td></td>
+                            <td>Gathering Equipment</td>
+                        </tr>
+                        <tr>
+                            <td></td>
+                            <td>Procedure Overview</td>
+                        </tr>                                                
+                        <tr class="warning">
+                            <td>Testing</td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td></td>
+                            <td>Parallel/Series/Unit</td>
+                        </tr>
+                        <tr class="warning">
+                            <td>Troubleshooting</td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td></td>
+                            <td>Ticket Reporting</td>
+                        </tr>
+                        <tr>
+                            <td></td>
+                            <td>Wiki update</td>
+                        </tr>
+                        <tr>
+                            <td></td>
+                            <td>Incidents/PRs</td>
+                        </tr>
+                        <tr>
+                            <td></td>
+                            <td>Infrastructure Support</td>
+                        </tr>
+                        <tr>
+                            <td></td>
+                            <td>Searching for Existing Ticket</td>
+                        </tr>                                                                        
+                        <tr class="warning">
+                            <td>Misc</td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td></td>
+                            <td>Wait Time</td>
+                        </tr>
+                        <tr>
+                            <td></td>
+                            <td>Fire Drill</td>
+                        </tr>
+                        <tr>
+                            <td></td>
+                            <td>Meetings</td>
+                        </tr>
+                        <tr>
+                            <td></td>
+                            <td>Third Party Support</td>
+                        </tr>                                                
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-warning" type="button" ng-click="cancel()">OK</button>
+            </div>
+        </script>
+        <!-- THis is the code for modal -->
+    </div>
+    <script type="text/javascript" src="/js/app.js"></script>
+    <script type="text/javascript" src="/js/controllers/reportsController.js"></script>
+    <script src="/node_modules/angular-ui-bootstrap/dist/ui-bootstrap.js"></script>
+    <script src="/node_modules/angular-ui-bootstrap/dist/ui-bootstrap-tpls.js"></script>
+    <!-- this is not used in this file. -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/1.0.2/Chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/angular-xeditable/0.1.12/js/xeditable.js"></script>
+    <script src="https://cdn.jsdelivr.net/angular.chartjs/0.8.8/angular-chart.js"></script>
+    <script src="/node_modules/angular-utils-pagination/dirPagination.js"></script>
+    <script src="/node_modules/angular-ui-tree/dist/angular-ui-tree.js"></script>
+    <script src="/node_modules/angular-daterangepicker/js/angular-daterangepicker.js"></script>
+    <!-- This file is not used in this file-->
+</body>
+
+</html>
+<!-- https://ajax.googleapis.com/ajax/libs/angularjs/1.2.16/angular.min.js -->

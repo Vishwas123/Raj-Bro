@@ -1,0 +1,24 @@
+SELECT TS_NAME,TS_EXEC_STATUS, 
+	   TS_VC_CHECKIN_USER_NAME, 
+	   TS_VC_CHECKIN_DATE 
+FROM TEST WHERE TEST.TS_TEST_ID in (SELECT TC_TEST_ID FROM TESTCYCL 
+									WHERE TC_CYCLE_ID in (	
+															SELECT CY_CYCLE_ID FROM CYCLE 
+															WHERE CY_FOLDER_ID in ( 
+																					SELECT f1.CF_ITEM_ID FROM CYCL_FOLD f1  
+	    																			JOIN (SELECT CF_ITEM_PATH as path 
+																						  FROM CYCL_FOLD 
+																						  WHERE CF_ITEM_NAME = 'Superman 0xC35 (Comprehensive)') t2 
+																					ON f1.CF_ITEM_PATH like ('%' + path + '%') 
+																						    WHERE CF_ITEM_PATH NOT LIKE ('%' + (SELECT f1.CF_ITEM_PATH FROM CYCL_FOLD f1  
+																						    JOIN (SELECT CF_ITEM_PATH as path 
+																								FROM CYCL_FOLD 
+																								WHERE CF_ITEM_NAME = 'Superman 0xC35 (Comprehensive)') t2 
+																						    ON f1.CF_ITEM_PATH like ('%' + path + '%') WHERE CF_ITEM_NAME = 'Automation') + '%' ) AND 
+																						    CF_ITEM_PATH NOT LIKE ('%' + (SELECT f1.CF_ITEM_PATH FROM CYCL_FOLD f1  
+																						    JOIN (SELECT CF_ITEM_PATH as path 
+																								FROM CYCL_FOLD 
+																								WHERE CF_ITEM_NAME = 'Superman 0xC35 (Comprehensive)') t2 
+																						    ON f1.CF_ITEM_PATH like ('%' + path + '%') WHERE CF_ITEM_NAME = 'Special') + '%' ) )
+																						) 
+									)

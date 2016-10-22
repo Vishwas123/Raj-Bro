@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html ng-app="reportsApp">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title></title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.16/angular.js"></script>
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.16/angular-resource.js"></script>
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+    <!-- Latest compiled and minified CSS -->
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+    <nav class="navbar navbar-default navbar-fixed-top">
+        <a class="navbar-brand" href="#">CPE - Test Planning Tool</a>
+        <ul class="nav navbar-nav">
+            <li class="nav-item">
+                <a class="nav-link" href="/">Home</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/testview">All Reports</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/trendview">Trend Report</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/caseview">Test Cases</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/avgview">Avg Report</a>
+            </li>
+            <li class="nav-item active">
+                <a class="nav-link" href="/progressview">Cycle Progress</a>
+            </li>
+        </ul>
+    </nav>
+</head>
+
+<body>
+    <div class="container" ng-controller="progressController">
+        <br>
+        <br>
+        <label hidden ng-model="cycleType"></label>
+        <h1> Progress View </h1>
+        <div class="panel panel-danger">
+            <div class="panel-heading">Cycle:</div>
+            <div class="panel-body">
+                <row>
+                    <div class="col-md-3">
+                        <select class="form-control" ng-model="cycle" ng-options="pt.cycle[0] as pt.cycle[0].cycleName for pt in platforms | unique:'cycle'" ng-change="changeSelect('cycle')" required>
+                            <option value="">-- Select Cycle --</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <button ng-disabled="isDisabled" id="cases" name="cases" class="btn btn-success" ng-click="getTests()">Get Progress</button>
+                        <div class="loader" ng-show="loading"></div>
+                    </div>
+                    <div class="col-md-4">
+                        <h4>Show Tester Report's Average                    
+                        <div class="material-switch pull-right">
+                            <input id="checkbox_showMongo" ng-model="checkbox_showMongo" ng-init="checkbox_showMongo = false" type="checkbox"/>
+                            <label for="checkbox_showMongo" class="label-primary"></label>
+                        </div>
+                        </h4>
+                    </div>
+                </row>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <div class="row">
+                    <div class="col-md-12" ng-show="chosenCycle">
+                        <h1>{{chosenCycle}} <span class="label label-default">Total: {{total}} tests // {{totalTime}} Hours</span></h1>
+                        <h4>** = Delta is Calculated by the Difference between Actual and Expected(QC) </h4>
+                        <h2>                        
+                            <span class="label label-success">{{count_passed}} Passed</span>
+                            <span class="label label-danger">{{count_failed}} Failed</span>
+                            <span class="label label-warning">{{count_notcompleted}} Not Completed</span>
+                            <span class="label label-info">{{count_norun}} No Runs</span>
+                        </h2>
+                        <h4>
+                            Start : {{ startDate}} {{startDay}}<br>
+                            End   : {{ endDate}} {{endDay}}
+                        </h4>
+                        <br>
+                    </div>
+                    <div class="col-md-6" ng-show="chosenCycle">
+                        <canvas id="doughnut" class="chart chart-doughnut" height="400" chart-data="data" chart-labels="labels" chart-options="options" chart-dataset-override="datasetOverride">
+                        </canvas>
+                    </div>
+                    <div class="col-md-6" ng-show="chosenCycle">
+                        <canvas id="doughnut" class="chart chart-doughnut" height="400" chart-data="data2" chart-labels="labels2" chart-options="options" chart-dataset-override="datasetOverride">
+                        </canvas>
+                    </div>
+                    <div class="col-md-4 col-md-offset-4" ng-show="chosenCycle">
+                        <table>
+                            <tr>
+                                <td ng-class="{'checked_progress_actual':progress_actual_check, 'checked_off':!progress_actual_check}">
+                                    <FONT ng-class="{'checked_progress_actual':progress_actual_check, 'checked_off':!progress_actual_check}">---</FONT>
+                                </td>
+                                <td>
+                                    <input type="checkbox" ng-change="toggleLineGraph(0)" ng-model="progress_actual_check" ng-init="progress_actual_check=true">
+                                    <label ng-click="progress_actual_check=!progress_actual_check; toggleLineGraph(0)">progress_actual</label>
+                                </td>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td ng-class="{'checked_goal':goal_check, 'checked_off':!goal_check}">
+                                    <FONT ng-class="{'checked_goal':goal_check, 'checked_off':!goal_check}">---</FONT>
+                                </td>
+                                <td>
+                                    <input type="checkbox" ng-change="toggleLineGraph(1)" ng-model="goal_check" ng-init="goal_check=true">
+                                    <label ng-click="goal_check=!goal_check; toggleLineGraph(1)">goal</label>
+                                </td>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td ng-class="{'checked_progress_expected':progress_expected_check, 'checked_off':!progress_expected_check}">
+                                    <FONT ng-class="{'checked_progress_expected':progress_expected_check, 'checked_off':!progress_expected_check}">---</FONT>
+                                </td>
+                                <td>
+                                    <input type="checkbox" ng-change="toggleLineGraph(2)" ng-model="progress_expected_check" ng-init="progress_expected_check=true">
+                                    <label ng-click="progress_expected_check=!progress_expected_check; toggleLineGraph(2)">progress_expected</label>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-md-12" ng-show="chosenCycle">
+                        <canvas id="line" class="chart chart-line" chart-data="data3" chart-labels="labels3" chart-series="series3" chart-options="options2" chart-colours="colors3"> </canvas>
+                    </div>
+                    <div class="col-md-12" ng-show="chosenCycle">
+                        <div class="update-nag">
+                            <div class="update-split update-danger"><i class="glyphicon glyphicon-warning-sign"></i></div>
+                            <div class="update-text"> <strong>As of Today:</strong> {{offAmount}} Hrs Off From Goal </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 col-md-offset-4" ng-show="chosenCycle">
+                        <table>
+                            <tr>
+                                <td ng-class="{'checked_qc_actual':qc_actual_check, 'checked_off':!qc_actual_check}">
+                                    <FONT ng-class="{'checked_qc_actual':qc_actual_check, 'checked_off':!qc_actual_check}">---</FONT>
+                                </td>
+                                <td>
+                                    <input type="checkbox" ng-change="toggleBarGraph(0)" ng-model="qc_actual_check" ng-init="qc_actual_check=true">
+                                    <label ng-click="qc_actual_check=!qc_actual_check; toggleBarGraph(0)">qc_actual</label>
+                                </td>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td ng-class="{'checked_tester':tester_check, 'checked_off':!tester_check}">
+                                    <FONT ng-class="{'checked_tester':tester_check, 'checked_off':!tester_check}">---</FONT>
+                                </td>
+                                <td>
+                                    <input type="checkbox" ng-change="toggleBarGraph(1)" ng-model="tester_check" ng-init="tester_check=true">
+                                    <label ng-click="tester_check=!tester_check; toggleBarGraph(1)">tester</label>
+                                </td>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td ng-class="{'checked_qc_expected':qc_expected_check, 'checked_off':!qc_expected_check}">
+                                    <FONT ng-class="{'checked_qc_expected':qc_expected_check, 'checked_off':!qc_expected_check}">---</FONT>
+                                </td>
+                                <td>
+                                    <input type="checkbox" ng-change="toggleBarGraph(2)" ng-model="qc_expected_check" ng-init="qc_expected_check=true">
+                                    <label ng-click="qc_expected_check=!qc_expected_check; toggleBarGraph(2)">qc_expected</label>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-md-12" ng-show="chosenCycle">
+                        <canvas id="bar" class="chart chart-bar" chart-data="data4" chart-labels="labels3" chart-series="series4" chart-options="options2" chart-colours="colors4">
+                        </canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="panel panel-default">
+            <div class="col-md-12">
+                <h3><span class="label label-default">ES</span>  
+                    <button ng-click="toggle('ES')" ng-show="chosenCycle">
+                        <span ng-class="{'glyphicon-minus':es_change,'glyphicon-plus':!es_change}" aria-hidden="true"></span>
+                    </button>
+                </h3>
+                <div class="col-md-8" ng-show="chosenCycle">
+                    <div class="progress">
+                        <div class="progress-bar progress-bar-success" role="progressbar" ng-style="{width: totalDoneProgress + '%'}">
+                            {{total_completed_es}} Hours Done
+                        </div>
+                        <div class="progress-bar progress-bar-danger" role="progressbar" ng-style="{width: totalLeftProgress + '%'}">
+                            {{total_expected_qc_es-total_completed_es}} Hours Left
+                        </div>
+                    </div>
+                    <h5>
+                            <span class="label label-success">{{count_passed_es}} Passed</span>
+                            <span class="label label-danger">{{count_failed_es}} Failed</span>
+                            <span class="label label-warning">{{count_notcompleted_es}} Not Completed</span>
+                            <span class="label label-info">{{count_norun_es}} No Runs</span><br><br>
+                    </h5>
+                    <p>Total Expected(Mongo) = {{total_expected_mongo_es}} hrs</p>
+                    <p>Total Expected(QC) = {{total_expected_qc_es}} hrs </p>
+                    <p> Total Completed = {{total_completed_es}} hrs</p>
+                </div>
+                <br>
+                <table class="table">
+                    <thead class="thead-inverse">
+                        <tr class="success">
+                            <th ng-click="sort('TS_NAME')">Test Name
+                                <span class="glyphicon sort-icon" ng-show="sortKey=='TS_NAME'" ng-class="{'glyphicon-chevron-up':reverse,'glyphicon-chevron-down':!reverse}"></span></th>
+                            <th ng-click="sort('TC_STATUS')">Exec Status
+                                <span class="glyphicon sort-icon" ng-show="sortKey=='TC_STATUS'" ng-class="{'glyphicon-chevron-up':reverse,'glyphicon-chevron-down':!reverse}"></span></th>
+                            <th ng-click="sort('EXPECTED_MONGO')" ng-show="checkbox_showMongo">Expected(mongo)
+                                <span class="glyphicon sort-icon" ng-show="sortKey=='EXPECTED_MONGO'" ng-class="{'glyphicon-chevron-up':reverse,'glyphicon-chevron-down':!reverse}"></span></th>
+                            <th ng-click="sort('EXPECTED_QC')">Expected(QC)
+                                <span class="glyphicon sort-icon" ng-show="sortKey=='EXPECTED_QC'" ng-class="{'glyphicon-chevron-up':reverse,'glyphicon-chevron-down':!reverse}"></span></th>
+                            <th ng-click="sort('TOTAL_TIME')">Actual
+                                <span class="glyphicon sort-icon" ng-show="sortKey=='TOTAL_TIME'" ng-class="{'glyphicon-chevron-up':reverse,'glyphicon-chevron-down':!reverse}"></span></th>
+                            <th ng-click="sort('DIFFERENCE')">**Delta (h:mm)
+                                <span class="glyphicon sort-icon" ng-show="sortKey=='DIFFERENCE'" ng-class="{'glyphicon-chevron-up':reverse,'glyphicon-chevron-down':!reverse}"></span></th>
+                            <th ng-click="sort('TC_TESTER_NAME')">Tester
+                                <span class="glyphicon sort-icon" ng-show="sortKey=='TC_TESTER_NAME'" ng-class="{'glyphicon-chevron-up':reverse,'glyphicon-chevron-down':!reverse}"></span></th>
+                            <th ng-click="sort('date_sort')">Date
+                                <span class="glyphicon sort-icon" ng-show="sortKey=='date_sort'" ng-class="{'glyphicon-chevron-up':reverse,'glyphicon-chevron-down':!reverse}"></span></th>
+                        </tr>
+                    </thead>
+                    <tbody ng-show="es_toggle == true">
+                        <tr ng-repeat="testProcedure in test_es | orderBy:sortKey:reverse">
+                            <td>{{testProcedure.TS_NAME}}</td>
+                            <td ng-class="{red : testProcedure.TC_STATUS == 'Failed', 
+                                       green : testProcedure.TC_STATUS == 'Passed',
+                                       orange : testProcedure.TC_STATUS == 'Not Completed',
+                                       blue : testProcedure.TC_STATUS == 'No Run'}"><b>{{testProcedure.TC_STATUS}}</b></td>
+                            <td ng-show="checkbox_showMongo">{{testProcedure.EXPECTED_STRING_MONGO}}</td>
+                            <!-- This is the average from Mongo -->
+                            <td>{{testProcedure.EXPECTED_STRING_QC}}</td>
+                            <td>{{testProcedure.TOTAL_TIME_STRING}}</td>
+                            <td ng-class="{red :(testProcedure.EXPECTED_QC*1.25 <= testProcedure.TOTAL_TIME), 
+                                         green : (testProcedure.EXPECTED_QC*0.75 >= testProcedure.TOTAL_TIME)}"><b>{{testProcedure.DIFFERENCE_STRING}}</b></td>
+                            <td>{{testProcedure.TC_TESTER_NAME}}</td>
+                            <td>{{testProcedure.date}}</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <button ng-click="toggle('ES')" ng-show="es_change" ng-class="{'btn btn-danger':es_change,'btn btn-success':!es_change}">
+                    <span ng-class="{'glyphicon-minus':es_change,'glyphicon-plus':!es_change}" aria-hidden="true"></span>
+                </button>
+            </div>
+        </div>
+        <div class="col-md-10">
+            <h3><span class="label label-default">UKR</span>  
+                    <button ng-click="toggle('UKR')" ng-show="chosenCycle">
+                        <span ng-class="{'glyphicon-minus':ukr_change,'glyphicon-plus':!ukr_change}" aria-hidden="true"></span>
+                    </button>
+                </h3>
+            <div class="col-md-8" ng-show="chosenCycle">
+                <div class="progress">
+                    <div class="progress-bar progress-bar-success" role="progressbar" ng-style="{width: totalDoneProgress + '%'}">
+                        {{total_completed_ukr}} Hours Done
+                    </div>
+                    <div class="progress-bar progress-bar-danger" role="progressbar" ng-style="{width: totalLeftProgress + '%'}">
+                        {{total_expected_qc_ukr-total_completed_ukr}} Hours Left
+                    </div>
+                </div>
+                <h5>
+                            <span class="label label-success">{{count_passed}} Passed</span>
+                            <span class="label label-danger">{{count_failed}} Failed</span>
+                            <span class="label label-warning">{{count_notcompleted}} Not Completed</span>
+                            <span class="label label-info">{{count_norun}} No Runs</span><br><br>
+                    </h5>
+                <p>Total Expected(Mongo) = {{total_expected_mongo_ukr}} hrs</p>
+                <p>Total Expected(QC) = {{total_expected_qc_ukr}} hrs </p>
+                <p> Total Completed = {{total_completed_ukr}} hrs</p>
+            </div>
+            <br>
+            <table class="table">
+                <thead class="thead-inverse">
+                    <tr class="success">
+                        <th ng-click="sort('TS_NAME')">Test Name
+                            <span class="glyphicon sort-icon" ng-show="sortKey=='TS_NAME'" ng-class="{'glyphicon-chevron-up':reverse,'glyphicon-chevron-down':!reverse}"></span></th>
+                        <th ng-click="sort('TC_STATUS')">Exec Status
+                            <span class="glyphicon sort-icon" ng-show="sortKey=='TC_STATUS'" ng-class="{'glyphicon-chevron-up':reverse,'glyphicon-chevron-down':!reverse}"></span></th>
+                        <th ng-click="sort('EXPECTED_MONGO_UKR')" ng-show="checkbox_showMongo">Expected(mongo)
+                            <span class="glyphicon sort-icon" ng-show="sortKey=='EXPECTED_MONGO'" ng-class="{'glyphicon-chevron-up':reverse,'glyphicon-chevron-down':!reverse}"></span></th>
+                        <th ng-click="sort('EXPECTED_QC')">Expected(QC)
+                            <span class="glyphicon sort-icon" ng-show="sortKey=='EXPECTED_QC'" ng-class="{'glyphicon-chevron-up':reverse,'glyphicon-chevron-down':!reverse}"></span></th>
+                        <th ng-click="sort('TOTAL_TIME')">Actual
+                            <span class="glyphicon sort-icon" ng-show="sortKey=='TOTAL_TIME'" ng-class="{'glyphicon-chevron-up':reverse,'glyphicon-chevron-down':!reverse}"></span></th>
+                        <th ng-click="sort('DIFFERENCE')">**Delta (h:mm)
+                            <span class="glyphicon sort-icon" ng-show="sortKey=='DIFFERENCE'" ng-class="{'glyphicon-chevron-up':reverse,'glyphicon-chevron-down':!reverse}"></span></th>
+                        <th ng-click="sort('TC_TESTER_NAME')">Tester
+                            <span class="glyphicon sort-icon" ng-show="sortKey=='TC_TESTER_NAME'" ng-class="{'glyphicon-chevron-up':reverse,'glyphicon-chevron-down':!reverse}"></span></th>
+                    </tr>
+                </thead>
+                <tbody ng-show="ukr_toggle == true">
+                    <tr ng-repeat="testProcedure in test_ukr | orderBy:sortKey:reverse">
+                        <td>{{testProcedure.TS_NAME}}</td>
+                        <td ng-class="{red : testProcedure.TC_STATUS == 'Failed', 
+                                       green : testProcedure.TC_STATUS == 'Passed',
+                                       orange : testProcedure.TC_STATUS == 'Not Completed',
+                                       blue : testProcedure.TC_STATUS == 'No Run'}"><b>{{testProcedure.TC_STATUS}}</b></td>
+                        <td ng-show="checkbox_showMongo">{{testProcedure.EXPECTED_STRING_MONGO}}</td>
+                        <!-- This is the average from Mongo -->
+                        <td>{{testProcedure.EXPECTED_STRING_QC}}</td>
+                        <td>{{testProcedure.TOTAL_TIME_STRING}}</td>
+                        <td ng-class="{red :(testProcedure.EXPECTED_QC*1.25 <= testProcedure.TOTAL_TIME), 
+                                         green : (testProcedure.EXPECTED_QC*0.75 >= testProcedure.TOTAL_TIME)}"><b>{{testProcedure.DIFFERENCE_STRING}}</b></td>
+                        <td>{{testProcedure.TC_TESTER_NAME}}</td>
+                    </tr>
+                </tbody>
+            </table>
+            <button ng-click="toggle('UKR')" ng-show="ukr_change" ng-class="{'btn btn-danger':ukr_change,'btn btn-success':!ukr_change}">
+                <span ng-class="{'glyphicon-minus':ukr_change,'glyphicon-plus':!ukr_change}" aria-hidden="true"></span>
+            </button>
+        </div>
+</body>
+<script type="text/javascript" src="/js/app.js"></script>
+<script type="text/javascript" src="/js/controllers/progressController.js"></script>
+<link rel="stylesheet" href="/js/css/progressview.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/1.0.2/Chart.js"></script>
+<script src="/node_modules/angular-chart.js/dist/angular-chart.min.js"></script>
+<!-- <script src="/node_modules/chart.js/dist/Chart.js"></script> -->
+<script src="/node_modules/angular-ui-bootstrap/dist/ui-bootstrap.js"></script>
+<script src="/node_modules/angular-ui-bootstrap/dist/ui-bootstrap-tpls.js"></script>
+<!-- This file is not used in this file-->
+<script src="/node_modules/angular-ui-tree/dist/angular-ui-tree.js"></script>
+<script src="/node_modules/angular-utils-pagination/dirPagination.js"></script>
+<link rel="stylesheet" href="/node_modules/angular-ui-tree/dist/angular-ui-tree.css">
+<link rel="stylesheet" href="/node_modules/angular-ui-tree/examples/css/app.css">
+<script src="/node_modules/angular-daterangepicker/js/angular-daterangepicker.js"></script>
+<!-- This file is not used in this file-->
+
+</html>
+<!-- https://ajax.googleapis.com/ajax/libs/angularjs/1.2.16/angular.min.js -->

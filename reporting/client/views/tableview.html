@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html ng-app="reportsApp">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title></title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.5.7/angular.js"></script>    
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.5.7/angular-resource.js"></script>
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+    <!-- Optional theme -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css" integrity="sha384-fLW2N01lMqjakBkx3l/M9EahuwpSfeNvV63J5ezn3uZzapT0u7EYsXMjQV+0En5r" crossorigin="anonymous">
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
+</head>
+
+<body>
+    <div class="container" ng-controller="tableController">
+        <h1> Reports List <button class="btn btn-info" ng-click="refresh()">Refresh</button></h1>
+        <input type="text" class="form-control" ng-model="filterinput" placeholder="Search">
+        <br>
+        <select ng-model="sel" ng-options="testid for testid in categories track by categories" class="form-control">
+            <option value="">All TestID</option>
+        </select>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th ng-click="sort('testid')">TestID
+                        <span class="glyphicon sort-icon" ng-show="sortKey=='testid'" ng-class="{'glyphicon-chevron-up':reverse,'glyphicon-chevron-down':!reverse}"></span></th>
+                    <th ng-click="sort('runid')">RunID
+                        <span class="glyphicon sort-icon" ng-show="sortKey=='runid'" ng-class="{'glyphicon-chevron-up':reverse,'glyphicon-chevron-down':!reverse}"></span></th>
+                    <th ng-click="sort('duration_time')">Duration_Time
+                        <span class="glyphicon sort-icon" ng-show="sortKey=='duration_time'" ng-class="{'glyphicon-chevron-up':reverse,'glyphicon-chevron-down':!reverse}"></span></th>
+                    <th ng-click="sort('total_time')">Total_Time
+                        <span class="glyphicon sort-icon" ng-show="sortKey=='total_time'" ng-class="{'glyphicon-chevron-up':reverse,'glyphicon-chevron-down':!reverse}"></span></th>
+                    <th ng-click="sort('setup_time')">Setup_Time
+                        <span class="glyphicon sort-icon" ng-show="sortKey=='setup_time'" ng-class="{'glyphicon-chevron-up':reverse,'glyphicon-chevron-down':!reverse}"></span></th>
+                    <th ng-click="sort('testing_time')">Testing_Time
+                        <span class="glyphicon sort-icon" ng-show="sortKey=='testing_time'" ng-class="{'glyphicon-chevron-up':reverse,'glyphicon-chevron-down':!reverse}"></span></th>
+                    <th ng-click="sort('error_time')">Error_Time
+                        <span class="glyphicon sort-icon" ng-show="sortKey=='error_time'" ng-class="{'glyphicon-chevron-up':reverse,'glyphicon-chevron-down':!reverse}"></span></th>
+                    <th ng-click="sort('misc_time')">Misc_Time
+                        <span class="glyphicon sort-icon" ng-show="sortKey=='misc_time'" ng-class="{'glyphicon-chevron-up':reverse,'glyphicon-chevron-down':!reverse}"></span></th>
+                    <th>Notes</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr ng-repeat="report in ::reports | orderBy:sortKey:reverse | filter:{'testid': sel||undefined} | filter:filterinput">
+                    <td>{{::report.testid}}</td>
+                    <td>{{::report.runid}}</td>
+                    <td>{{::report.duration_time}}</td>
+                    <td>{{::report.total_time}}</td>
+                    <td>{{::report.setup_time}}</td>
+                    <td>{{::report.testing_time}}</td>
+                    <td>{{::report.error_time}}</td>
+                    <td>{{::report.misc_time}}</td>
+                    <td>{{::report.notes}}</td>
+                    <td>
+                        <button class="btn btn-danger" ng-click="delete(report._id)">Delete</button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <script type="text/javascript" src="/js/app.js"></script>
+    <script type="text/javascript" src="/js/controllers/tableController.js"></script>
+    <!--  this is not used in this file -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/1.0.2/Chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/angular.chartjs/0.8.8/angular-chart.js"></script>
+    <script src="/node_modules/angular-utils-pagination/dirPagination.js"></script>
+    <script src="/node_modules/angular-ui-bootstrap/dist/ui-bootstrap.js"></script>
+    <script src="/node_modules/angular-ui-tree/dist/angular-ui-tree.js"></script>
+    <script src="/node_modules/angular-daterangepicker/js/angular-daterangepicker.js"></script>    
+    <!--  this is not used in this file -->
+</body>
+
+</html>
+<!-- https://ajax.googleapis.com/ajax/libs/angularjs/1.2.16/angular.min.js -->

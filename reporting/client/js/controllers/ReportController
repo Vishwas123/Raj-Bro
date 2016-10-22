@@ -1,0 +1,37 @@
+ReportController
+	
+	localhost:3000/reports
+	http://localhost:3000/reports#?testname=test&testid=1&runid=2&duration=10800&testerid=kenny&test_instance_id=40000
+	Requirements : Params
+						1) testname 
+						2) testid
+						3) runid
+						4) duration
+						5) testerid
+						6) test_instance_id
+
+	Users are able to select "Platform" "Cycle" "Project", and submit a detailed report on particular Run
+
+
+CaseViewController
+
+	localhost:3000/caseview
+
+	Used for the test coordinators to see the Test Cases associated to a partciular Cycle.
+	Coordinators are able to sort the cases by either 1)Feature, or 2) Test Procedures.
+	
+
+TestViewController  (not using TableViewController)
+
+	localhost:3000/testview
+
+	Gets all the reports that's been made, user is able to make changes if needed.
+
+AverageController
+
+	localhost:3000/avgview
+
+	Shows you the QC Average VS Actual Test Reported Time for all tests.
+
+	avg_duration = QC Duration
+	avg_total = Tester Reported Duration

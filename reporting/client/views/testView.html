@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html ng-app="reportsApp">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title></title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.5.7/angular.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.5.7/angular-resource.js"></script>
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+    <!-- Optional theme -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css" integrity="sha384-fLW2N01lMqjakBkx3l/M9EahuwpSfeNvV63J5ezn3uZzapT0u7EYsXMjQV+0En5r" crossorigin="anonymous">
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
+    <nav class="navbar navbar-default navbar-fixed-top">
+        <a class="navbar-brand" href="#">CPE - Test Planning Tool</a>
+        <ul class="nav navbar-nav">
+            <li class="nav-item">
+                <a class="nav-link" href="/">Home</a>
+            </li>
+            <li class="nav-item active">
+                <a class="nav-link" href="/testview">All Reports</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/trendview">Trend Report</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/caseview">Test Cases</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/avgview">Avg Report</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/progressview">Cycle Progress</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/planningview"> Test Planning</a>
+            </li>                        
+        </ul>
+    </nav>
+</head>
+<style>
+.loader {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    width: 50px;
+    height: 50px;
+    z-index: 9999;
+    background: url('/node_modules/images/default.gif') 50% 50% no-repeat rgb(249, 249, 249);
+}
+</style>
+
+<body>
+    <div class="container" ng-controller="testController">
+        <br>
+        <br>
+        <h1> Reports List <button class="btn btn-info" ng-click="refresh()">Refresh</button></h1>
+        <input type="text" class="form-control" ng-model="filterinput" placeholder="Search">
+        <br>
+        <select ng-model="id_selected" ng-options="testid for testid in id_categories" class="form-control">
+            <option value="">All TestID</option>
+        </select>
+        <br>
+        <select ng-model="platform_selected" ng-options="platform for platform in platform_categories" class="form-control">
+            <option value="">All Platform</option>
+        </select>
+        <br>
+        <select ng-model="project_selected" ng-options="project for project in project_categories" class="form-control">
+            <option value="">All Project</option>
+        </select>
+        <br>
+        <select ng-model="cycle_selected" ng-options="cycle for cycle in cycle_categories" class="form-control">
+            <option value="">All Cycle</option>
+        </select>
+        <div class="loader" ng-show="loading"></div>        
+        <br>
+        <label class="checkbox-inline">
+            <input type="checkbox" ng-model="check_tester" ng-checked="true" ng-init="check_tester=true"> Tester
+        </label>
+        <label class="checkbox-inline">
+            <input type="checkbox" ng-model="check_duration" ng-checked="true" ng-init="check_duration=true"> Duration
+        </label>
+        <label class="checkbox-inline">
+            <input type="checkbox" ng-model="check_total" ng-checked="true" ng-init="check_total=true"> Total
+        </label>
+        <label class="checkbox-inline">
+            <input type="checkbox" ng-model="check_setup" ng-checked="true" ng-init="check_setup=true"> Setup
+        </label>
+        <label class="checkbox-inline">
+            <input type="checkbox" ng-model="check_testing" ng-checked="true" ng-init="check_testing=true"> Testing
+        </label>
+        <label class="checkbox-inline">
+            <input type="checkbox" ng-model="check_error" ng-checked="true" ng-init="check_error=true"> Error
+        </label>
+        <label class="checkbox-inline">
+            <input type="checkbox" ng-model="check_misc" ng-checked="true" ng-init="check_misc=true"> Misc
+        </label>
+        <label class="checkbox-inline">
+            <input type="checkbox" ng-model="check_platform" ng-checked="true" ng-init="check_platform=true"> Platform
+        </label>
+        <label class="checkbox-inline">
+            <input type="checkbox" ng-model="check_project" ng-checked="true" ng-init="check_project=true"> Project
+        </label>
+        <label class="checkbox-inline">
+            <input type="checkbox" ng-model="check_cycle" ng-checked="true" ng-init="check_cycle=true"> Cycle
+        </label>
+        <label class="checkbox-inline">
+            <input type="checkbox" ng-model="check_date" ng-checked="true" ng-init="check_date=true"> Date
+        </label>
+        <label class="checkbox-inline">
+            <input type="checkbox" ng-model="check_notes" ng-init="check_notes=false"> Notes
+        </label>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th ng-click="sort('testname')">Name
+                            <span class="glyphicon sort-icon" ng-show="sortKey=='testname'" ng-class="{'glyphicon-chevron-up':reverse,'glyphicon-chevron-down':!reverse}"></span></th>
+                        <th ng-click="sort('testid')">ID
+                            <span class="glyphicon sort-icon" ng-show="sortKey=='testid'" ng-class="{'glyphicon-chevron-up':reverse,'glyphicon-chevron-down':!reverse}"></span></th>
+                        <th ng-click="sort('runid')">RunID
+                            <span class="glyphicon sort-icon" ng-show="sortKey=='runid'" ng-class="{'glyphicon-chevron-up':reverse,'glyphicon-chevron-down':!reverse}"></span></th>
+                        <th ng-click="sort('testerid')" ng-show="check_tester">Tester
+                            <span class="glyphicon sort-icon" ng-show="sortKey=='testerid'" ng-class="{'glyphicon-chevron-up':reverse,'glyphicon-chevron-down':!reverse}"></span></th>
+                        <th ng-click="sort('duration_time')" ng-show="check_duration">Duration
+                            <span class="glyphicon sort-icon" ng-show="sortKey=='duration_time'" ng-class="{'glyphicon-chevron-up':reverse,'glyphicon-chevron-down':!reverse}"></span></th>
+                        <th ng-click="sort('total_time')" ng-show="check_total">Total
+                            <span class="glyphicon sort-icon" ng-show="sortKey=='total_time'" ng-class="{'glyphicon-chevron-up':reverse,'glyphicon-chevron-down':!reverse}"></span></th>
+                        <th ng-click="sort('setup_time')" ng-show="check_setup">Setup
+                            <span class="glyphicon sort-icon" ng-show="sortKey=='setup_time'" ng-class="{'glyphicon-chevron-up':reverse,'glyphicon-chevron-down':!reverse}"></span></th>
+                        <th ng-click="sort('testing_time')" ng-show="check_testing">Testing
+                            <span class="glyphicon sort-icon" ng-show="sortKey=='testing_time'" ng-class="{'glyphicon-chevron-up':reverse,'glyphicon-chevron-down':!reverse}"></span></th>
+                        <th ng-click="sort('error_time')" ng-show="check_error">Error
+                            <span class="glyphicon sort-icon" ng-show="sortKey=='error_time'" ng-class="{'glyphicon-chevron-up':reverse,'glyphicon-chevron-down':!reverse}"></span></th>
+                        <th ng-click="sort('misc_time')" ng-show="check_misc">Misc
+                            <span class="glyphicon sort-icon" ng-show="sortKey=='misc_time'" ng-class="{'glyphicon-chevron-up':reverse,'glyphicon-chevron-down':!reverse}"></span></th>
+                        <th ng-click="sort('platform')" ng-show="check_platform">Platform
+                            <span class="glyphicon sort-icon" ng-show="sortKey=='platform'" ng-class="{'glyphicon-chevron-up':reverse,'glyphicon-chevron-down':!reverse}"></span></th>
+                        <th ng-click="sort('project')" ng-show="check_project">Project
+                            <span class="glyphicon sort-icon" ng-show="sortKey=='project'" ng-class="{'glyphicon-chevron-up':reverse,'glyphicon-chevron-down':!reverse}"></span></th>
+                        <th ng-click="sort('cycle')" ng-show="check_cycle">Cycle
+                            <span class="glyphicon sort-icon" ng-show="sortKey=='cycle'" ng-class="{'glyphicon-chevron-up':reverse,'glyphicon-chevron-down':!reverse}"></span></th>
+                        <th ng-click="sort('date')" ng-show="check_date">Date
+                            <span class="glyphicon sort-icon" ng-show="sortKey=='date'" ng-class="{'glyphicon-chevron-up':reverse,'glyphicon-chevron-down':!reverse}"></span></th>
+                        <th ng-show="check_notes">Notes</th>
+                        <th>Action</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr ng-repeat="report in reports | orderBy:sortKey:reverse | 
+                filter: {'testid': id_selected ||undefined} : true |
+                filter: {'project': project_selected||undefined} : true |
+                filter: {'platform': platform_selected||undefined} : true |
+                filter: {cycle: {'cycleName': cycle_selected||undefined } }: true | 
+                filter: filterinput">
+                        <td>{{report.testname}}</td>
+                        <td>{{report.testid}}</td>
+                        <td>{{report.runid}}</td>
+                        <td ng-show="check_tester">{{report.testerid}}</td>
+                        <td ng-show="check_duration">{{report.duration_time}}</td>
+                        <td ng-show="check_total">{{report.total_time}}</td>
+                        <td ng-show="check_setup">{{report.setup_time}}</td>
+                        <td ng-show="check_testing">{{report.testing_time}}</td>
+                        <td ng-show="check_error">{{report.error_time}}</td>
+                        <td ng-show="check_misc">{{report.misc_time}}</td>
+                        <td ng-show="check_platform">{{report.platform}}</td>
+                        <td ng-show="check_project">{{report.project}}</td>
+                        <td ng-show="check_cycle">{{report.cycle[0].cycleName}}</td>
+                        <td ng-show="check_date">{{report.date}}</td>
+                        <td ng-show="check_notes">{{report.notes}}</td>
+                        <td>
+                            <button class="btn btn-info" ng-click="edit(report)">Edit</button>
+                        </td>
+                        <td>
+                            <button class="btn btn-danger" ng-click="delete(report._id)">Delete</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+    </div>
+    <script type="text/javascript" src="/js/app.js"></script>
+    <script type="text/javascript" src="/js/controllers/testController.js"></script>
+    <!--  this is not used in this file -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/1.0.2/Chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/angular.chartjs/0.8.8/angular-chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/angular-ui-bootstrap/1.3.3/ui-bootstrap-tpls.js"></script>
+    <script src="/node_modules/angular-utils-pagination/dirPagination.js"></script>
+    <script src="/node_modules/angular-ui-bootstrap/dist/ui-bootstrap.js"></script>
+    <script src="/node_modules/angular-ui-tree/dist/angular-ui-tree.js"></script>
+    <script src="/node_modules/angular-daterangepicker/js/angular-daterangepicker.js"></script>    
+    <!--  this is not used in this file -->
+</body>
+
+</html>
+<!-- https://ajax.googleapis.com/ajax/libs/angularjs/1.2.16/angular.min.js -->
